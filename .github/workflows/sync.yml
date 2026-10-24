@@ -1,0 +1,37 @@
+name: Sync Fork from Upstream
+
+on:
+  schedule:
+    - cron: "0 2 * * *"        # 每天 UTC 02:00（北京时间 10:00）自动检查一次
+  workflow_dispatch:            # 支持在 Actions 页面手动触发
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Sync upstream changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync upstream into fork
+        uses: tgymnich/fork-sync@v2
+        with:
+          owner: morluto         # 上游仓库 owner
+          repo: rea              # 上游仓库名
+          base: main             # 你的 fork 目标分支
+          head: main             # 上游源分支
+          merge_method: merge    # 合并方式: merge / rebase / squash
+          auto_approve: false    # 不开自动批准，保留你人工确认
+          pr_title: "chore: sync upstream morluto/rea"
+          pr_message: |
+            自动从上游 morluto/rea 同步最新代码。
+
+            如与本地改动冲突，请在本 PR 中手动解决后再合并。
+          github_token: ${{ secrets.GITHUB_TOKEN }}
